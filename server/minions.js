@@ -2,6 +2,17 @@ const express = require('express');
 const db = require('./db');
 const minionsRouter = express.Router();
 
+minionsRouter.param('minionId', (req, res, next, id) => {
+    const minionId = id;
+    const validId = db.getFromDatabaseById('minions', minionId);
+    if (validId){
+        req.minionId = minionId;
+        next();
+    } else {
+        res.status(404).send();
+    }
+});
+
 minionsRouter.get('/', (req, res, next) => {
     const minions = db.getAllFromDatabase('minions');
     if (minions) {
@@ -12,17 +23,11 @@ minionsRouter.get('/', (req, res, next) => {
 });
 
 minionsRouter.get('/:minionId', (req, res, next) => {
-    const minionId = req.params.minionId;
-    const minion = db.getFromDatabaseById('minions', minionId);
-    if (minion) {
-        res.send(minion);
-    } else {
-        res.status(404).send();
-    }
+        res.send(db.getFromDatabaseById('minions', req.minionId));
 });
 
 minionsRouter.post('/', (req, res, next) => {
-    const newMinion = db.addToDatabase('minions', req.query);
+    const newMinion = db.addToDatabase('minions', req.body);
     if (newMinion){
         res.status(201).send(newMinion);
     } else {
@@ -31,23 +36,13 @@ minionsRouter.post('/', (req, res, next) => {
 });
 
 minionsRouter.put('/:minionId', (req, res, next) => {
-    const minionId = req.params.minionId;
-    const updatedMinion = db.updateInstanceInDatabase('minions', minionId);
-    if (updatedMinion) {
-        res.send(updatedMinion);
-    } else {
-        res.status(404).send();
-    }
+    const updatedMinion = db.updateInstanceInDatabase('minions', req.body);
+    res.send(updatedMinion);
 });
 
 minionsRouter.delete('/:minionId', (req, res, next) => {
-    const minionId = req.params.minionId;
-    const deleted = db.deleteFromDatabasebyId('minions', minionId);
-    if(deleted){
-        res.status(204).send();
-    } else {
-        res.status(404).send();
-    }
+    const deleted = db.deleteFromDatabasebyId('minions', req.minionId);
+    res.status(204).send();
 });
 
 module.exports = minionsRouter;
